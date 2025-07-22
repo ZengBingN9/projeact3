@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>设计进度流程可视化应用</title>
+    <title>数据可视化报表</title>
     <!-- 引入Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- 引入Font Awesome -->
@@ -51,35 +51,30 @@
                 transform: translateY(-4px);
                 box-shadow: 0 10px 25px rgba(22, 93, 255, 0.12);
             }
+            .input-focus {
+                @apply focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors;
+            }
         }
     </style>
 </head>
 <body class="font-inter bg-light text-dark min-h-screen flex flex-col">
     <!-- 顶部导航栏 -->
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-50 transition-all duration-300" id="navbar">
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
         <div class="container mx-auto px-4 py-3 flex items-center justify-between">
             <div class="flex items-center space-x-2">
-                <i class="fa fa-line-chart text-primary text-2xl"></i>
-                <h1 class="text-xl font-bold text-primary hidden sm:block">设计进度流程可视化应用</h1>
-                <h1 class="text-xl font-bold text-primary sm:hidden">进度追踪</h1>
+                <i class="fa fa-bar-chart text-primary text-2xl"></i>
+                <h1 class="text-xl font-bold text-primary">数据可视化报表</h1>
             </div>
             
             <div class="flex items-center space-x-4">
-                <button id="mobile-menu-button" class="lg:hidden text-gray-600 hover:text-primary">
-                    <i class="fa fa-bars text-xl"></i>
+                <button id="saveReport" class="bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg transition-all flex items-center shadow-sm hover:shadow-md">
+                    <i class="fa fa-save mr-2"></i> 保存报表
                 </button>
-                
-                <nav class="hidden lg:flex items-center space-x-6">
-                    <a href="#dashboard" class="text-gray-700 hover:text-primary transition-colors font-medium">仪表盘</a>
-                    <a href="#projects" class="text-gray-700 hover:text-primary transition-colors font-medium">项目</a>
-                    <a href="#tasks" class="text-gray-700 hover:text-primary transition-colors font-medium">任务</a>
-                    <a href="#reports" class="text-gray-700 hover:text-primary transition-colors font-medium">报告</a>
-                </nav>
                 
                 <div class="relative group">
                     <button class="flex items-center space-x-2 text-gray-700 hover:text-primary transition-colors">
                         <img src="https://picsum.photos/id/1005/40/40" alt="用户头像" class="w-8 h-8 rounded-full object-cover border-2 border-primary">
-                        <span class="hidden md:inline">张设计师</span>
+                        <span class="hidden md:inline">管理员</span>
                         <i class="fa fa-caret-down"></i>
                     </button>
                     
@@ -98,24 +93,6 @@
                 </div>
             </div>
         </div>
-        
-        <!-- 移动端菜单 -->
-        <div id="mobile-menu" class="lg:hidden hidden bg-white border-t border-gray-100 px-4 py-2">
-            <nav class="flex flex-col space-y-3">
-                <a href="#dashboard" class="text-gray-700 hover:text-primary transition-colors py-2 px-3 rounded-md hover:bg-light">
-                    <i class="fa fa-dashboard mr-2"></i>仪表盘
-                </a>
-                <a href="#projects" class="text-gray-700 hover:text-primary transition-colors py-2 px-3 rounded-md hover:bg-light">
-                    <i class="fa fa-folder-open mr-2"></i>项目
-                </a>
-                <a href="#tasks" class="text-gray-700 hover:text-primary transition-colors py-2 px-3 rounded-md hover:bg-light">
-                    <i class="fa fa-tasks mr-2"></i>任务
-                </a>
-                <a href="#reports" class="text-gray-700 hover:text-primary transition-colors py-2 px-3 rounded-md hover:bg-light">
-                    <i class="fa fa-bar-chart mr-2"></i>报告
-                </a>
-            </nav>
-        </div>
     </header>
 
     <!-- 主内容区 -->
@@ -125,543 +102,472 @@
             <div class="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-2xl p-6 shadow-sm">
                 <div class="flex flex-col md:flex-row md:items-center justify-between">
                     <div>
-                        <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-dark mb-2">你好，张设计师 👋</h2>
-                        <p class="text-gray-600 mb-4">今天是 <span id="current-date"></span>，你有 <span class="text-primary font-medium">3</span> 个任务待完成</p>
+                        <h2 class="text-2xl font-bold text-dark mb-2">数据可视化报表管理</h2>
+                        <p class="text-gray-600 mb-4">编辑下方数据，图表将实时更新。支持6组数据，每组包含名称和数值。</p>
                         <div class="flex flex-wrap gap-3">
-                            <button class="bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg transition-all flex items-center shadow-md hover:shadow-lg">
-                                <i class="fa fa-plus mr-2"></i> 新建项目
+                            <button id="addData" class="bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg transition-all flex items-center shadow-md hover:shadow-lg">
+                                <i class="fa fa-plus mr-2"></i> 添加数据
                             </button>
-                            <button class="bg-white hover:bg-gray-50 text-primary border border-primary/30 px-5 py-2 rounded-lg transition-all flex items-center shadow-sm hover:shadow-md">
-                                <i class="fa fa-upload mr-2"></i> 上传进度
+                            <button id="resetData" class="bg-white hover:bg-gray-50 text-primary border border-primary/30 px-5 py-2 rounded-lg transition-all flex items-center shadow-sm hover:shadow-md">
+                                <i class="fa fa-refresh mr-2"></i> 重置数据
                             </button>
                         </div>
                     </div>
                     <div class="mt-6 md:mt-0">
-                        <img src="https://picsum.photos/id/180/400/200" alt="项目进度" class="rounded-lg shadow-md w-full md:w-auto max-w-md">
+                        <img src="https://picsum.photos/id/180/400/200" alt="数据可视化" class="rounded-lg shadow-md w-full md:w-auto max-w-md">
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- 数据概览卡片 -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white rounded-xl p-6 card-shadow hover-lift">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-gray-600 font-medium">总项目数</h3>
-                    <div class="bg-primary/10 p-3 rounded-lg">
-                        <i class="fa fa-folder-open text-primary text-xl"></i>
-                    </div>
-                </div>
-                <p class="text-3xl font-bold mb-1">12</p>
-                <p class="text-success flex items-center text-sm">
-                    <i class="fa fa-arrow-up mr-1"></i> 较上月增长 15%
-                </p>
-            </div>
-            
-            <div class="bg-white rounded-xl p-6 card-shadow hover-lift">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-gray-600 font-medium">进行中任务</h3>
-                    <div class="bg-warning/10 p-3 rounded-lg">
-                        <i class="fa fa-spinner text-warning text-xl"></i>
-                    </div>
-                </div>
-                <p class="text-3xl font-bold mb-1">28</p>
-                <p class="text-warning flex items-center text-sm">
-                    <i class="fa fa-clock-o mr-1"></i> 12 个即将截止
-                </p>
-            </div>
-            
-            <div class="bg-white rounded-xl p-6 card-shadow hover-lift">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-gray-600 font-medium">已完成任务</h3>
-                    <div class="bg-success/10 p-3 rounded-lg">
-                        <i class="fa fa-check-circle text-success text-xl"></i>
-                    </div>
-                </div>
-                <p class="text-3xl font-bold mb-1">86</p>
-                <p class="text-success flex items-center text-sm">
-                    <i class="fa fa-arrow-up mr-1"></i> 本周完成率 92%
-                </p>
-            </div>
-            
-            <div class="bg-white rounded-xl p-6 card-shadow hover-lift">
-                <div class="flex items-center justify-between mb-4">
-                    <h3 class="text-gray-600 font-medium">团队成员</h3>
-                    <div class="bg-accent/10 p-3 rounded-lg">
-                        <i class="fa fa-users text-accent text-xl"></i>
-                    </div>
-                </div>
-                <p class="text-3xl font-bold mb-1">18</p>
-                <p class="text-info flex items-center text-sm">
-                    <i class="fa fa-dot-circle-o mr-1"></i> 5 人今日活跃
-                </p>
-            </div>
-        </section>
-
-        <!-- 图表和项目区域 -->
+        <!-- 图表和数据区域 -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <!-- 左侧图表区域 -->
             <div class="lg:col-span-2 space-y-8">
-                <!-- 项目进度图表 -->
+                <!-- 柱状图 -->
                 <div class="bg-white rounded-xl p-6 card-shadow">
                     <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-lg font-bold">项目进度概览</h3>
+                        <h3 class="text-lg font-bold">数据柱状图</h3>
                         <div class="flex space-x-2">
-                            <button class="px-3 py-1 text-sm bg-primary/10 text-primary rounded-md hover:bg-primary/20 transition-colors">周</button>
-                            <button class="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition-colors">月</button>
-                            <button class="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition-colors">季</button>
+                            <button class="chart-type-btn px-3 py-1 text-sm bg-primary/10 text-primary rounded-md hover:bg-primary/20 transition-colors" data-type="bar">柱状图</button>
+                            <button class="chart-type-btn px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition-colors" data-type="line">折线图</button>
+                            <button class="chart-type-btn px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition-colors" data-type="pie">饼图</button>
                         </div>
                     </div>
                     <div class="h-80">
-                        <canvas id="projectProgressChart"></canvas>
+                        <canvas id="dataChart"></canvas>
                     </div>
                 </div>
                 
-                <!-- 任务完成率图表 -->
+                <!-- 统计信息 -->
                 <div class="bg-white rounded-xl p-6 card-shadow">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-lg font-bold">任务完成率</h3>
-                        <button class="text-primary hover:text-primary/80 text-sm flex items-center">
-                            <i class="fa fa-refresh mr-1"></i> 刷新数据
-                        </button>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="h-64">
-                            <canvas id="taskCompletionChart"></canvas>
+                    <h3 class="text-lg font-bold mb-6">数据统计</h3>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div class="bg-light rounded-lg p-4 hover-lift">
+                            <h4 class="text-sm text-gray-500 mb-1">数据组数</h4>
+                            <p class="text-2xl font-bold" id="dataCount">6</p>
                         </div>
-                        <div class="md:col-span-2 flex flex-col justify-center space-y-4">
-                            <div>
-                                <div class="flex justify-between mb-1">
-                                    <span class="text-sm text-gray-600">UI设计</span>
-                                    <span class="text-sm font-medium">85%</span>
-                                </div>
-                                <div class="w-full bg-gray-200 rounded-full h-2">
-                                    <div class="bg-primary h-2 rounded-full" style="width: 85%"></div>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between mb-1">
-                                    <span class="text-sm text-gray-600">交互设计</span>
-                                    <span class="text-sm font-medium">60%</span>
-                                </div>
-                                <div class="w-full bg-gray-200 rounded-full h-2">
-                                    <div class="bg-secondary h-2 rounded-full" style="width: 60%"></div>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between mb-1">
-                                    <span class="text-sm text-gray-600">原型设计</span>
-                                    <span class="text-sm font-medium">92%</span>
-                                </div>
-                                <div class="w-full bg-gray-200 rounded-full h-2">
-                                    <div class="bg-accent h-2 rounded-full" style="width: 92%"></div>
-                                </div>
-                            </div>
-                            <div>
-                                <div class="flex justify-between mb-1">
-                                    <span class="text-sm text-gray-600">用户测试</span>
-                                    <span class="text-sm font-medium">45%</span>
-                                </div>
-                                <div class="w-full bg-gray-200 rounded-full h-2">
-                                    <div class="bg-warning h-2 rounded-full" style="width: 45%"></div>
-                                </div>
-                            </div>
+                        <div class="bg-light rounded-lg p-4 hover-lift">
+                            <h4 class="text-sm text-gray-500 mb-1">平均值</h4>
+                            <p class="text-2xl font-bold" id="dataAvg">58.3</p>
+                        </div>
+                        <div class="bg-light rounded-lg p-4 hover-lift">
+                            <h4 class="text-sm text-gray-500 mb-1">最大值</h4>
+                            <p class="text-2xl font-bold text-success" id="dataMax">89</p>
+                        </div>
+                        <div class="bg-light rounded-lg p-4 hover-lift">
+                            <h4 class="text-sm text-gray-500 mb-1">最小值</h4>
+                            <p class="text-2xl font-bold text-danger" id="dataMin">32</p>
                         </div>
                     </div>
                 </div>
             </div>
             
-            <!-- 右侧项目和任务区域 -->
+            <!-- 右侧数据编辑区域 -->
             <div class="space-y-8">
-                <!-- 最近项目 -->
                 <div class="bg-white rounded-xl p-6 card-shadow">
                     <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-lg font-bold">最近项目</h3>
-                        <a href="#all-projects" class="text-primary hover:text-primary/80 text-sm">查看全部</a>
+                        <h3 class="text-lg font-bold">数据编辑</h3>
+                        <span class="text-sm text-gray-500">双击单元格进行编辑</span>
                     </div>
-                    <div class="space-y-4">
-                        <div class="border-l-4 border-primary pl-4 py-2 hover-lift">
-                            <h4 class="font-medium mb-1">企业官网改版</h4>
-                            <p class="text-sm text-gray-600 mb-2">设计团队 · 截止日期: 2025-08-15</p>
-                            <div class="flex justify-between items-center">
-                                <div class="w-full bg-gray-200 rounded-full h-1.5 mr-2">
-                                    <div class="bg-primary h-1.5 rounded-full" style="width: 75%"></div>
-                                </div>
-                                <span class="text-xs font-medium text-primary">75%</span>
-                            </div>
-                        </div>
-                        <div class="border-l-4 border-secondary pl-4 py-2 hover-lift">
-                            <h4 class="font-medium mb-1">移动应用UI设计</h4>
-                            <p class="text-sm text-gray-600 mb-2">产品团队 · 截止日期: 2025-07-30</p>
-                            <div class="flex justify-between items-center">
-                                <div class="w-full bg-gray-200 rounded-full h-1.5 mr-2">
-                                    <div class="bg-secondary h-1.5 rounded-full" style="width: 60%"></div>
-                                </div>
-                                <span class="text-xs font-medium text-secondary">60%</span>
-                            </div>
-                        </div>
-                        <div class="border-l-4 border-accent pl-4 py-2 hover-lift">
-                            <h4 class="font-medium mb-1">品牌视觉系统</h4>
-                            <p class="text-sm text-gray-600 mb-2">市场团队 · 截止日期: 2025-08-05</p>
-                            <div class="flex justify-between items-center">
-                                <div class="w-full bg-gray-200 rounded-full h-1.5 mr-2">
-                                    <div class="bg-accent h-1.5 rounded-full" style="width: 90%"></div>
-                                </div>
-                                <span class="text-xs font-medium text-accent">90%</span>
-                            </div>
-                        </div>
-                        <div class="border-l-4 border-warning pl-4 py-2 hover-lift">
-                            <h4 class="font-medium mb-1">用户体验研究</h4>
-                            <p class="text-sm text-gray-600 mb-2">设计团队 · 截止日期: 2025-07-25</p>
-                            <div class="flex justify-between items-center">
-                                <div class="w-full bg-gray-200 rounded-full h-1.5 mr-2">
-                                    <div class="bg-warning h-1.5 rounded-full" style="width: 40%"></div>
-                                </div>
-                                <span class="text-xs font-medium text-warning">40%</span>
-                            </div>
-                        </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full min-w-[300px]">
+                            <thead>
+                                <tr class="border-b border-gray-200">
+                                    <th class="py-3 text-left text-gray-600 font-medium">数据名称</th>
+                                    <th class="py-3 text-left text-gray-600 font-medium">数值</th>
+                                    <th class="py-3 text-left text-gray-600 font-medium">操作</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dataTable">
+                                <!-- 数据行将通过JavaScript动态生成 -->
+                            </tbody>
+                        </table>
                     </div>
-                </div>
-                
-                <!-- 今日任务 -->
-                <div class="bg-white rounded-xl p-6 card-shadow">
-                    <div class="flex items-center justify-between mb-6">
-                        <h3 class="text-lg font-bold">今日任务</h3>
-                        <button class="text-primary hover:text-primary/80 text-sm flex items-center">
-                            <i class="fa fa-plus mr-1"></i> 添加任务
+                    
+                    <div class="mt-6 text-center">
+                        <button id="applyChanges" class="w-full bg-primary hover:bg-primary/90 text-white px-5 py-2.5 rounded-lg transition-all flex items-center justify-center shadow-md hover:shadow-lg">
+                            <i class="fa fa-check mr-2"></i> 应用更改
                         </button>
                     </div>
-                    <div class="space-y-4">
-                        <div class="flex items-start p-3 border border-gray-100 rounded-lg hover:border-primary/30 transition-colors hover-lift">
-                            <input type="checkbox" class="mt-1 mr-3 accent-primary">
-                            <div>
-                                <h4 class="font-medium">完成首页设计稿</h4>
-                                <p class="text-sm text-gray-600 mt-1">截止时间: 今天 16:00</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start p-3 border border-gray-100 rounded-lg hover:border-primary/30 transition-colors hover-lift">
-                            <input type="checkbox" class="mt-1 mr-3 accent-primary">
-                            <div>
-                                <h4 class="font-medium">与开发团队沟通</h4>
-                                <p class="text-sm text-gray-600 mt-1">截止时间: 今天 14:30</p>
-                            </div>
-                        </div>
-                        <div class="flex items-start p-3 border border-gray-100 rounded-lg hover:border-primary/30 transition-colors hover-lift">
-                            <input type="checkbox" class="mt-1 mr-3 accent-primary">
-                            <div>
-                                <h4 class="font-medium">审核移动端设计</h4>
-                                <p class="text-sm text-gray-600 mt-1">截止时间: 今天 18:00</p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 
-                <!-- 进度填报 -->
-                <div class="bg-gradient-to-br from-primary to-accent rounded-xl p-6 text-white shadow-lg">
-                    <h3 class="text-lg font-bold mb-4">填报今日进度</h3>
-                    <p class="text-white/80 mb-6">提交你的工作进展，帮助团队了解项目状态</p>
-                    <button class="w-full bg-white text-primary font-medium py-3 rounded-lg hover:bg-gray-100 transition-colors shadow-md">
-                        填写进度报告
-                    </button>
+                <!-- 颜色配置 -->
+                <div class="bg-white rounded-xl p-6 card-shadow">
+                    <h3 class="text-lg font-bold mb-6">图表颜色配置</h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-700">柱状图颜色</span>
+                            <div class="flex space-x-2">
+                                <input type="color" id="barColor" value="#165DFF" class="w-8 h-8 rounded cursor-pointer">
+                                <input type="color" id="lineColor" value="#36CFC9" class="w-8 h-8 rounded cursor-pointer">
+                                <input type="color" id="pieColor1" value="#722ED1" class="w-8 h-8 rounded cursor-pointer">
+                                <input type="color" id="pieColor2" value="#52C41A" class="w-8 h-8 rounded cursor-pointer">
+                                <input type="color" id="pieColor3" value="#FAAD14" class="w-8 h-8 rounded cursor-pointer">
+                                <input type="color" id="pieColor4" value="#FF4D4F" class="w-8 h-8 rounded cursor-pointer">
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-700">背景颜色</span>
+                            <input type="color" id="bgColor" value="#F5F7FA" class="w-8 h-8 rounded cursor-pointer">
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-gray-700">网格线颜色</span>
+                            <input type="color" id="gridColor" value="#E5E7EB" class="w-8 h-8 rounded cursor-pointer">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-        
-        <!-- 项目甘特图 -->
-        <section class="mt-8 bg-white rounded-xl p-6 card-shadow">
-            <div class="flex items-center justify-between mb-6">
-                <h3 class="text-lg font-bold">项目时间线</h3>
-                <div class="flex items-center space-x-4">
-                    <div class="flex items-center space-x-2">
-                        <span class="w-3 h-3 rounded-full bg-primary"></span>
-                        <span class="text-sm text-gray-600">进行中</span>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <span class="w-3 h-3 rounded-full bg-success"></span>
-                        <span class="text-sm text-gray-600">已完成</span>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <span class="w-3 h-3 rounded-full bg-warning"></span>
-                        <span class="text-sm text-gray-600">延期</span>
-                    </div>
-                </div>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full min-w-[800px]">
-                    <thead>
-                        <tr class="border-b border-gray-200">
-                            <th class="py-3 text-left text-gray-600 font-medium">项目</th>
-                            <th class="py-3 text-left text-gray-600 font-medium">负责人</th>
-                            <th class="py-3 text-left text-gray-600 font-medium" colspan="28">时间线 (7月)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr class="border-b border-gray-100">
-                            <td class="py-4 font-medium">企业官网改版</td>
-                            <td class="py-4"><img src="https://picsum.photos/id/1005/32/32" alt="负责人" class="w-6 h-6 rounded-full mr-2">张设计师</td>
-                            <td colspan="7"></td>
-                            <td colspan="14" class="bg-primary/20 text-center">进行中</td>
-                            <td colspan="7" class="bg-gray-100"></td>
-                        </tr>
-                        <tr class="border-b border-gray-100">
-                            <td class="py-4 font-medium">移动应用UI设计</td>
-                            <td class="py-4"><img src="https://picsum.photos/id/1012/32/32" alt="负责人" class="w-6 h-6 rounded-full mr-2">李设计师</td>
-                            <td colspan="4"></td>
-                            <td colspan="12" class="bg-primary/20 text-center">进行中</td>
-                            <td colspan="3" class="bg-warning/20 text-center">延期</td>
-                            <td colspan="9" class="bg-gray-100"></td>
-                        </tr>
-                        <tr>
-                            <td class="py-4 font-medium">品牌视觉系统</td>
-                            <td class="py-4"><img src="https://picsum.photos/id/1027/32/32" alt="负责人" class="w-6 h-6 rounded-full mr-2">王设计师</td>
-                            <td colspan="2"></td>
-                            <td colspan="20" class="bg-success/20 text-center">已完成</td>
-                            <td colspan="6"></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </section>
     </main>
 
     <!-- 页脚 -->
     <footer class="bg-white border-t border-gray-200 py-6 mt-8">
-        <div class="container mx-auto px-4">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-                <div class="mb-4 md:mb-0">
-                    <div class="flex items-center space-x-2">
-                        <i class="fa fa-line-chart text-primary text-xl"></i>
-                        <span class="font-bold text-primary">设计进度流程可视化应用</span>
-                    </div>
-                    <p class="text-gray-500 text-sm mt-2">提高团队协作效率，实时掌握项目进度</p>
-                </div>
-                <div class="flex flex-wrap gap-6">
-                    <div>
-                        <h4 class="font-medium mb-2">功能</h4>
-                        <ul class="space-y-1 text-sm text-gray-500">
-                            <li><a href="#" class="hover:text-primary">项目管理</a></li>
-                            <li><a href="#" class="hover:text-primary">进度追踪</a></li>
-                            <li><a href="#" class="hover:text-primary">数据报表</a></li>
-                            <li><a href="#" class="hover:text-primary">团队协作</a></li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 class="font-medium mb-2">支持</h4>
-                        <ul class="space-y-1 text-sm text-gray-500">
-                            <li><a href="#" class="hover:text-primary">帮助中心</a></li>
-                            <li><a href="#" class="hover:text-primary">联系我们</a></li>
-                            <li><a href="#" class="hover:text-primary">常见问题</a></li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4 class="font-medium mb-2">关于</h4>
-                        <ul class="space-y-1 text-sm text-gray-500">
-                            <li><a href="#" class="hover:text-primary">公司介绍</a></li>
-                            <li><a href="#" class="hover:text-primary">隐私政策</a></li>
-                            <li><a href="#" class="hover:text-primary">服务条款</a></li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="border-t border-gray-100 mt-6 pt-6 text-center text-gray-500 text-sm">
-                © 2025 设计进度流程可视化应用. 保留所有权利.
-            </div>
+        <div class="container mx-auto px-4 text-center text-gray-500 text-sm">
+            © 2025 数据可视化报表. 保留所有权利.
         </div>
     </footer>
 
-    <!-- 进度填报模态框 -->
-    <div id="progressModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center">
-        <div class="bg-white rounded-xl w-full max-w-lg p-6 transform transition-all">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold">填写进度报告</h3>
-                <button id="closeModal" class="text-gray-500 hover:text-gray-700">
-                    <i class="fa fa-times text-xl"></i>
-                </button>
-            </div>
-            <form>
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">选择项目</label>
-                        <select class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors">
-                            <option>企业官网改版</option>
-                            <option>移动应用UI设计</option>
-                            <option>品牌视觉系统</option>
-                            <option>用户体验研究</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">今日完成情况</label>
-                        <textarea rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors" placeholder="请描述今天完成的工作内容..."></textarea>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">遇到的问题</label>
-                        <textarea rows="2" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors" placeholder="如有问题，请简要描述..."></textarea>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">明日计划</label>
-                        <textarea rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors" placeholder="请描述明天的工作计划..."></textarea>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">进度百分比</label>
-                        <input type="range" min="0" max="100" value="50" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary">
-                        <div class="flex justify-between text-xs text-gray-500 mt-1">
-                            <span>0%</span>
-                            <span>50%</span>
-                            <span>100%</span>
-                        </div>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">上传附件（可选）</label>
-                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition-colors">
-                            <i class="fa fa-cloud-upload text-3xl text-gray-400 mb-2"></i>
-                            <p class="text-sm text-gray-500">点击或拖拽文件到此处上传</p>
-                            <p class="text-xs text-gray-400 mt-1">支持 JPG, PNG, PDF, XLSX 格式</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="mt-6 flex justify-end space-x-3">
-                    <button type="button" id="cancelReport" class="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
-                        取消
-                    </button>
-                    <button type="submit" class="px-5 py-2.5 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors shadow-md hover:shadow-lg">
-                        提交报告
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-
     <!-- JavaScript -->
     <script>
-        // 设置当前日期
+        // 初始数据
+        let chartData = [
+            { name: "数据组A", value: 65 },
+            { name: "数据组B", value: 59 },
+            { name: "数据组C", value: 80 },
+            { name: "数据组D", value: 81 },
+            { name: "数据组E", value: 56 },
+            { name: "数据组F", value: 55 }
+        ];
+        
+        let chartType = "bar"; // 默认图表类型
+        let dataChart = null; // 全局图表对象
+        
+        // DOM加载完成后执行
         document.addEventListener('DOMContentLoaded', function() {
-            const dateOptions = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
-            const currentDate = new Date().toLocaleDateString('zh-CN', dateOptions);
-            document.getElementById('current-date').textContent = currentDate;
-            
             // 初始化图表
-            initCharts();
+            initChart();
             
-            // 移动端菜单切换
-            document.getElementById('mobile-menu-button').addEventListener('click', function() {
-                const mobileMenu = document.getElementById('mobile-menu');
-                mobileMenu.classList.toggle('hidden');
-            });
+            // 渲染数据表格
+            renderDataTable();
             
-            // 导航栏滚动效果
-            window.addEventListener('scroll', function() {
-                const navbar = document.getElementById('navbar');
-                if (window.scrollY > 10) {
-                    navbar.classList.add('shadow-md');
-                } else {
-                    navbar.classList.remove('shadow-md');
-                }
-            });
+            // 更新统计信息
+            updateStats();
             
-            // 进度填报模态框
-            document.querySelectorAll('button:contains("填写进度报告")').forEach(button => {
-                button.addEventListener('click', function() {
-                    document.getElementById('progressModal').classList.remove('hidden');
+            // 图表类型切换
+            document.querySelectorAll('.chart-type-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    // 更新按钮样式
+                    document.querySelectorAll('.chart-type-btn').forEach(b => {
+                        b.classList.remove('bg-primary/10', 'text-primary');
+                        b.classList.add('bg-gray-100', 'text-gray-600');
+                    });
+                    this.classList.remove('bg-gray-100', 'text-gray-600');
+                    this.classList.add('bg-primary/10', 'text-primary');
+                    
+                    // 更新图表类型
+                    chartType = this.getAttribute('data-type');
+                    updateChart();
                 });
             });
             
-            document.getElementById('closeModal').addEventListener('click', function() {
-                document.getElementById('progressModal').classList.add('hidden');
+            // 应用更改按钮
+            document.getElementById('applyChanges').addEventListener('click', function() {
+                updateChart();
+                updateStats();
+                showNotification('数据已更新', 'success');
             });
             
-            document.getElementById('cancelReport').addEventListener('click', function() {
-                document.getElementById('progressModal').classList.add('hidden');
+            // 添加数据按钮
+            document.getElementById('addData').addEventListener('click', function() {
+                if (chartData.length >= 10) {
+                    showNotification('最多只能添加10组数据', 'warning');
+                    return;
+                }
+                
+                chartData.push({ name: `数据组${String.fromCharCode(65 + chartData.length)}`, value: 50 });
+                renderDataTable();
+                updateChart();
+                updateStats();
+            });
+            
+            // 重置数据按钮
+            document.getElementById('resetData').addEventListener('click', function() {
+                chartData = [
+                    { name: "数据组A", value: 65 },
+                    { name: "数据组B", value: 59 },
+                    { name: "数据组C", value: 80 },
+                    { name: "数据组D", value: 81 },
+                    { name: "数据组E", value: 56 },
+                    { name: "数据组F", value: 55 }
+                ];
+                renderDataTable();
+                updateChart();
+                updateStats();
+                showNotification('数据已重置为默认值', 'info');
+            });
+            
+            // 保存报表按钮
+            document.getElementById('saveReport').addEventListener('click', function() {
+                // 这里只是模拟保存，实际应用中可以添加导出PDF/Excel等功能
+                showNotification('报表已保存', 'success');
+            });
+            
+            // 颜色选择器事件
+            document.querySelectorAll('input[type="color"]').forEach(input => {
+                input.addEventListener('change', updateChart);
             });
         });
         
         // 初始化图表
-        function initCharts() {
-            // 项目进度图表
-            const projectCtx = document.getElementById('projectProgressChart').getContext('2d');
-            const projectChart = new Chart(projectCtx, {
-                type: 'line',
-                data: {
-                    labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
-                    datasets: [
-                        {
-                            label: '企业官网改版',
-                            data: [15, 30, 45, 55, 65, 70, 75],
-                            borderColor: '#165DFF',
-                            backgroundColor: 'rgba(22, 93, 255, 0.1)',
-                            tension: 0.4,
-                            fill: true
-                        },
-                        {
-                            label: '移动应用UI设计',
-                            data: [10, 25, 35, 45, 50, 55, 60],
-                            borderColor: '#36CFC9',
-                            backgroundColor: 'rgba(54, 207, 201, 0.1)',
-                            tension: 0.4,
-                            fill: true
-                        },
-                        {
-                            label: '品牌视觉系统',
-                            data: [20, 40, 60, 75, 85, 90, 90],
-                            borderColor: '#722ED1',
-                            backgroundColor: 'rgba(114, 46, 209, 0.1)',
-                            tension: 0.4,
-                            fill: true
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'top',
-                        },
-                        tooltip: {
-                            mode: 'index',
-                            intersect: false,
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            max: 100,
-                            ticks: {
-                                callback: function(value) {
-                                    return value + '%';
-                                }
-                            }
-                        }
-                    }
-                }
-            });
+        function initChart() {
+            const ctx = document.getElementById('dataChart').getContext('2d');
             
-            // 任务完成率图表
-            const taskCtx = document.getElementById('taskCompletionChart').getContext('2d');
-            const taskChart = new Chart(taskCtx, {
-                type: 'doughnut',
+            // 获取颜色配置
+            const barColor = document.getElementById('barColor').value;
+            const lineColor = document.getElementById('lineColor').value;
+            const bgColor = document.getElementById('bgColor').value;
+            const gridColor = document.getElementById('gridColor').value;
+            
+            // 准备数据
+            const labels = chartData.map(item => item.name);
+            const values = chartData.map(item => item.value);
+            
+            // 创建图表
+            dataChart = new Chart(ctx, {
+                type: chartType,
                 data: {
-                    labels: ['已完成', '进行中', '未开始'],
+                    labels: labels,
                     datasets: [{
-                        data: [45, 30, 25],
-                        backgroundColor: [
-                            '#52C41A',
-                            '#165DFF',
-                            '#F5F7FA'
-                        ],
-                        borderWidth: 0,
+                        label: '数据值',
+                        data: values,
+                        backgroundColor: getChartColors(),
+                        borderColor: barColor,
+                        borderWidth: 1
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    cutout: '70%',
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: gridColor
+                            }
+                        },
+                        x: {
+                            grid: {
+                                color: gridColor
+                            }
+                        }
+                    },
                     plugins: {
                         legend: {
-                            position: 'bottom',
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.raw}`;
+                                }
+                            }
                         }
-                    }
+                    },
+                    backgroundColor: bgColor
                 }
             });
+        }
+        
+        // 更新图表
+        function updateChart() {
+            if (dataChart) {
+                dataChart.destroy();
+            }
+            initChart();
+        }
+        
+        // 获取图表颜色
+        function getChartColors() {
+            if (chartType === 'pie') {
+                return [
+                    document.getElementById('pieColor1').value,
+                    document.getElementById('pieColor2').value,
+                    document.getElementById('pieColor3').value,
+                    document.getElementById('pieColor4').value,
+                    document.getElementById('barColor').value,
+                    document.getElementById('lineColor').value
+                ];
+            } else {
+                const baseColor = chartType === 'bar' ? 
+                    document.getElementById('barColor').value : 
+                    document.getElementById('lineColor').value;
+                
+                // 为柱状图生成渐变颜色
+                return chartData.map((_, index) => {
+                    // 简单的颜色渐变算法
+                    const brightness = 100 - (index * 5) > 50 ? 100 - (index * 5) : 50;
+                    return `${baseColor}${brightness.toString(16)}`;
+                });
+            }
+        }
+        
+        // 渲染数据表格
+        function renderDataTable() {
+            const tableBody = document.getElementById('dataTable');
+            tableBody.innerHTML = '';
+            
+            chartData.forEach((item, index) => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-gray-100 hover:bg-light transition-colors';
+                
+                // 数据名称单元格
+                const nameCell = document.createElement('td');
+                nameCell.className = 'py-3 px-2 editable-cell';
+                nameCell.textContent = item.name;
+                nameCell.dataset.index = index;
+                nameCell.dataset.type = 'name';
+                
+                // 数据值单元格
+                const valueCell = document.createElement('td');
+                valueCell.className = 'py-3 px-2 editable-cell';
+                valueCell.textContent = item.value;
+                valueCell.dataset.index = index;
+                valueCell.dataset.type = 'value';
+                
+                // 操作单元格
+                const actionCell = document.createElement('td');
+                actionCell.className = 'py-3 px-2';
+                
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'text-danger hover:text-danger/80';
+                deleteBtn.innerHTML = '<i class="fa fa-trash"></i>';
+                deleteBtn.addEventListener('click', function() {
+                    if (chartData.length <= 2) {
+                        showNotification('至少保留两组数据', 'warning');
+                        return;
+                    }
+                    chartData.splice(index, 1);
+                    renderDataTable();
+                    updateChart();
+                    updateStats();
+                });
+                
+                actionCell.appendChild(deleteBtn);
+                
+                row.appendChild(nameCell);
+                row.appendChild(valueCell);
+                row.appendChild(actionCell);
+                tableBody.appendChild(row);
+            });
+            
+            // 添加双击编辑功能
+            document.querySelectorAll('.editable-cell').forEach(cell => {
+                cell.addEventListener('dblclick', function() {
+                    const index = this.dataset.index;
+                    const type = this.dataset.type;
+                    const value = this.textContent;
+                    
+                    // 创建输入框
+                    const input = document.createElement('input');
+                    input.type = type === 'value' ? 'number' : 'text';
+                    input.value = value;
+                    input.className = 'w-full p-1 border border-gray-300 rounded input-focus';
+                    
+                    // 替换单元格内容
+                    this.innerHTML = '';
+                    this.appendChild(input);
+                    
+                    // 自动聚焦
+                    input.focus();
+                    
+                    // 失去焦点或按下回车键时保存
+                    input.addEventListener('blur', saveEdit.bind(this, index, type));
+                    input.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter') {
+                            saveEdit.call(this.parentElement, index, type);
+                        }
+                    });
+                });
+            });
+        }
+        
+        // 保存编辑
+        function saveEdit(index, type) {
+            const input = this.querySelector('input');
+            const value = input.value.trim();
+            
+            if (type === 'name' && value) {
+                chartData[index].name = value;
+            } else if (type === 'value' && !isNaN(parseInt(value))) {
+                chartData[index].value = parseInt(value);
+            }
+            
+            this.textContent = type === 'value' ? parseInt(value) : value;
+            this.dataset.index = index;
+            this.dataset.type = type;
+        }
+        
+        // 更新统计信息
+        function updateStats() {
+            const values = chartData.map(item => item.value);
+            const sum = values.reduce((acc, val) => acc + val, 0);
+            const avg = sum / values.length;
+            const max = Math.max(...values);
+            const min = Math.min(...values);
+            
+            document.getElementById('dataCount').textContent = chartData.length;
+            document.getElementById('dataAvg').textContent = avg.toFixed(1);
+            document.getElementById('dataMax').textContent = max;
+            document.getElementById('dataMin').textContent = min;
+        }
+        
+        // 显示通知
+        function showNotification(message, type = 'info') {
+            // 创建通知元素
+            const notification = document.createElement('div');
+            
+            // 设置样式和内容
+            let bgColor, textColor, icon;
+            switch(type) {
+                case 'success':
+                    bgColor = 'bg-success';
+                    textColor = 'text-white';
+                    icon = 'fa-check-circle';
+                    break;
+                case 'warning':
+                    bgColor = 'bg-warning';
+                    textColor = 'text-white';
+                    icon = 'fa-exclamation-triangle';
+                    break;
+                case 'error':
+                    bgColor = 'bg-danger';
+                    textColor = 'text-white';
+                    icon = 'fa-times-circle';
+                    break;
+                default:
+                    bgColor = 'bg-primary';
+                    textColor = 'text-white';
+                    icon = 'fa-info-circle';
+            }
+            
+            notification.className = `${bgColor} ${textColor} px-4 py-3 rounded-lg shadow-lg fixed top-4 right-4 z-50 flex items-center`;
+            notification.innerHTML = `<i class="fa ${icon} mr-2"></i> ${message}`;
+            
+            // 添加到页面
+            document.body.appendChild(notification);
+            
+            // 3秒后自动消失
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transform = 'translateY(-10px)';
+                notification.style.transition = 'opacity 0.3s ease, transform 0.3s ease';
+                
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 300);
+            }, 3000);
         }
     </script>
 </body>
