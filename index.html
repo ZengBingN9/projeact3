@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>设计进度流程可视化应用</title>
+    <!-- 引入Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- 引入Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- 引入Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.8/dist/chart.umd.min.js"></script>
+    
+    <!-- Tailwind配置 -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#165DFF',
+                        secondary: '#36CFC9',
+                        accent: '#722ED1',
+                        success: '#52C41A',
+                        warning: '#FAAD14',
+                        danger: '#FF4D4F',
+                        info: '#8C8C8C',
+                        light: '#F5F7FA',
+                        dark: '#1D2129',
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    
+    <!-- 自定义工具类 -->
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .content-auto {
+                content-visibility: auto;
+            }
+            .card-shadow {
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            }
+            .hover-lift {
+                transition: transform 0.3s ease, box-shadow 0.3s ease;
+            }
+            .hover-lift:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 10px 25px rgba(22, 93, 255, 0.12);
+            }
+        }
+    </style>
+</head>
+<body class="font-inter bg-light text-dark min-h-screen flex flex-col">
+    <!-- 顶部导航栏 -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50 transition-all duration-300" id="navbar">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+                <i class="fa fa-line-chart text-primary text-2xl"></i>
+                <h1 class="text-xl font-bold text-primary hidden sm:block">设计进度流程可视化应用</h1>
+                <h1 class="text-xl font-bold text-primary sm:hidden">进度追踪</h1>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <button id="mobile-menu-button" class="lg:hidden text-gray-600 hover:text-primary">
+                    <i class="fa fa-bars text-xl"></i>
+                </button>
+                
+                <nav class="hidden lg:flex items-center space-x-6">
+                    <a href="#dashboard" class="text-gray-700 hover:text-primary transition-colors font-medium">仪表盘</a>
+                    <a href="#projects" class="text-gray-700 hover:text-primary transition-colors font-medium">项目</a>
+                    <a href="#tasks" class="text-gray-700 hover:text-primary transition-colors font-medium">任务</a>
+                    <a href="#reports" class="text-gray-700 hover:text-primary transition-colors font-medium">报告</a>
+                </nav>
+                
+                <div class="relative group">
+                    <button class="flex items-center space-x-2 text-gray-700 hover:text-primary transition-colors">
+                        <img src="https://picsum.photos/id/1005/40/40" alt="用户头像" class="w-8 h-8 rounded-full object-cover border-2 border-primary">
+                        <span class="hidden md:inline">张设计师</span>
+                        <i class="fa fa-caret-down"></i>
+                    </button>
+                    
+                    <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-10 hidden group-hover:block transition-all duration-300">
+                        <a href="#profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary hover:text-white transition-colors">
+                            <i class="fa fa-user mr-2"></i>个人资料
+                        </a>
+                        <a href="#settings" class="block px-4 py-2 text-sm text-gray-700 hover:bg-primary hover:text-white transition-colors">
+                            <i class="fa fa-cog mr-2"></i>设置
+                        </a>
+                        <div class="border-t border-gray-100 my-1"></div>
+                        <a href="#logout" class="block px-4 py-2 text-sm text-danger hover:bg-danger hover:text-white transition-colors">
+                            <i class="fa fa-sign-out mr-2"></i>退出登录
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 移动端菜单 -->
+        <div id="mobile-menu" class="lg:hidden hidden bg-white border-t border-gray-100 px-4 py-2">
+            <nav class="flex flex-col space-y-3">
+                <a href="#dashboard" class="text-gray-700 hover:text-primary transition-colors py-2 px-3 rounded-md hover:bg-light">
+                    <i class="fa fa-dashboard mr-2"></i>仪表盘
+                </a>
+                <a href="#projects" class="text-gray-700 hover:text-primary transition-colors py-2 px-3 rounded-md hover:bg-light">
+                    <i class="fa fa-folder-open mr-2"></i>项目
+                </a>
+                <a href="#tasks" class="text-gray-700 hover:text-primary transition-colors py-2 px-3 rounded-md hover:bg-light">
+                    <i class="fa fa-tasks mr-2"></i>任务
+                </a>
+                <a href="#reports" class="text-gray-700 hover:text-primary transition-colors py-2 px-3 rounded-md hover:bg-light">
+                    <i class="fa fa-bar-chart mr-2"></i>报告
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 主内容区 -->
+    <main class="flex-grow container mx-auto px-4 py-6">
+        <!-- 欢迎信息 -->
+        <section class="mb-8">
+            <div class="bg-gradient-to-r from-primary/10 to-secondary/10 rounded-2xl p-6 shadow-sm">
+                <div class="flex flex-col md:flex-row md:items-center justify-between">
+                    <div>
+                        <h2 class="text-[clamp(1.5rem,3vw,2.5rem)] font-bold text-dark mb-2">你好，张设计师 👋</h2>
+                        <p class="text-gray-600 mb-4">今天是 <span id="current-date"></span>，你有 <span class="text-primary font-medium">3</span> 个任务待完成</p>
+                        <div class="flex flex-wrap gap-3">
+                            <button class="bg-primary hover:bg-primary/90 text-white px-5 py-2 rounded-lg transition-all flex items-center shadow-md hover:shadow-lg">
+                                <i class="fa fa-plus mr-2"></i> 新建项目
+                            </button>
+                            <button class="bg-white hover:bg-gray-50 text-primary border border-primary/30 px-5 py-2 rounded-lg transition-all flex items-center shadow-sm hover:shadow-md">
+                                <i class="fa fa-upload mr-2"></i> 上传进度
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mt-6 md:mt-0">
+                        <img src="https://picsum.photos/id/180/400/200" alt="项目进度" class="rounded-lg shadow-md w-full md:w-auto max-w-md">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 数据概览卡片 -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-xl p-6 card-shadow hover-lift">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-gray-600 font-medium">总项目数</h3>
+                    <div class="bg-primary/10 p-3 rounded-lg">
+                        <i class="fa fa-folder-open text-primary text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-3xl font-bold mb-1">12</p>
+                <p class="text-success flex items-center text-sm">
+                    <i class="fa fa-arrow-up mr-1"></i> 较上月增长 15%
+                </p>
+            </div>
+            
+            <div class="bg-white rounded-xl p-6 card-shadow hover-lift">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-gray-600 font-medium">进行中任务</h3>
+                    <div class="bg-warning/10 p-3 rounded-lg">
+                        <i class="fa fa-spinner text-warning text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-3xl font-bold mb-1">28</p>
+                <p class="text-warning flex items-center text-sm">
+                    <i class="fa fa-clock-o mr-1"></i> 12 个即将截止
+                </p>
+            </div>
+            
+            <div class="bg-white rounded-xl p-6 card-shadow hover-lift">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-gray-600 font-medium">已完成任务</h3>
+                    <div class="bg-success/10 p-3 rounded-lg">
+                        <i class="fa fa-check-circle text-success text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-3xl font-bold mb-1">86</p>
+                <p class="text-success flex items-center text-sm">
+                    <i class="fa fa-arrow-up mr-1"></i> 本周完成率 92%
+                </p>
+            </div>
+            
+            <div class="bg-white rounded-xl p-6 card-shadow hover-lift">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-gray-600 font-medium">团队成员</h3>
+                    <div class="bg-accent/10 p-3 rounded-lg">
+                        <i class="fa fa-users text-accent text-xl"></i>
+                    </div>
+                </div>
+                <p class="text-3xl font-bold mb-1">18</p>
+                <p class="text-info flex items-center text-sm">
+                    <i class="fa fa-dot-circle-o mr-1"></i> 5 人今日活跃
+                </p>
+            </div>
+        </section>
+
+        <!-- 图表和项目区域 -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- 左侧图表区域 -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- 项目进度图表 -->
+                <div class="bg-white rounded-xl p-6 card-shadow">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-bold">项目进度概览</h3>
+                        <div class="flex space-x-2">
+                            <button class="px-3 py-1 text-sm bg-primary/10 text-primary rounded-md hover:bg-primary/20 transition-colors">周</button>
+                            <button class="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition-colors">月</button>
+                            <button class="px-3 py-1 text-sm bg-gray-100 text-gray-600 rounded-md hover:bg-gray-200 transition-colors">季</button>
+                        </div>
+                    </div>
+                    <div class="h-80">
+                        <canvas id="projectProgressChart"></canvas>
+                    </div>
+                </div>
+                
+                <!-- 任务完成率图表 -->
+                <div class="bg-white rounded-xl p-6 card-shadow">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-bold">任务完成率</h3>
+                        <button class="text-primary hover:text-primary/80 text-sm flex items-center">
+                            <i class="fa fa-refresh mr-1"></i> 刷新数据
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="h-64">
+                            <canvas id="taskCompletionChart"></canvas>
+                        </div>
+                        <div class="md:col-span-2 flex flex-col justify-center space-y-4">
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm text-gray-600">UI设计</span>
+                                    <span class="text-sm font-medium">85%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-primary h-2 rounded-full" style="width: 85%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm text-gray-600">交互设计</span>
+                                    <span class="text-sm font-medium">60%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-secondary h-2 rounded-full" style="width: 60%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm text-gray-600">原型设计</span>
+                                    <span class="text-sm font-medium">92%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-accent h-2 rounded-full" style="width: 92%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between mb-1">
+                                    <span class="text-sm text-gray-600">用户测试</span>
+                                    <span class="text-sm font-medium">45%</span>
+                                </div>
+                                <div class="w-full bg-gray-200 rounded-full h-2">
+                                    <div class="bg-warning h-2 rounded-full" style="width: 45%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 右侧项目和任务区域 -->
+            <div class="space-y-8">
+                <!-- 最近项目 -->
+                <div class="bg-white rounded-xl p-6 card-shadow">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-bold">最近项目</h3>
+                        <a href="#all-projects" class="text-primary hover:text-primary/80 text-sm">查看全部</a>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="border-l-4 border-primary pl-4 py-2 hover-lift">
+                            <h4 class="font-medium mb-1">企业官网改版</h4>
+                            <p class="text-sm text-gray-600 mb-2">设计团队 · 截止日期: 2025-08-15</p>
+                            <div class="flex justify-between items-center">
+                                <div class="w-full bg-gray-200 rounded-full h-1.5 mr-2">
+                                    <div class="bg-primary h-1.5 rounded-full" style="width: 75%"></div>
+                                </div>
+                                <span class="text-xs font-medium text-primary">75%</span>
+                            </div>
+                        </div>
+                        <div class="border-l-4 border-secondary pl-4 py-2 hover-lift">
+                            <h4 class="font-medium mb-1">移动应用UI设计</h4>
+                            <p class="text-sm text-gray-600 mb-2">产品团队 · 截止日期: 2025-07-30</p>
+                            <div class="flex justify-between items-center">
+                                <div class="w-full bg-gray-200 rounded-full h-1.5 mr-2">
+                                    <div class="bg-secondary h-1.5 rounded-full" style="width: 60%"></div>
+                                </div>
+                                <span class="text-xs font-medium text-secondary">60%</span>
+                            </div>
+                        </div>
+                        <div class="border-l-4 border-accent pl-4 py-2 hover-lift">
+                            <h4 class="font-medium mb-1">品牌视觉系统</h4>
+                            <p class="text-sm text-gray-600 mb-2">市场团队 · 截止日期: 2025-08-05</p>
+                            <div class="flex justify-between items-center">
+                                <div class="w-full bg-gray-200 rounded-full h-1.5 mr-2">
+                                    <div class="bg-accent h-1.5 rounded-full" style="width: 90%"></div>
+                                </div>
+                                <span class="text-xs font-medium text-accent">90%</span>
+                            </div>
+                        </div>
+                        <div class="border-l-4 border-warning pl-4 py-2 hover-lift">
+                            <h4 class="font-medium mb-1">用户体验研究</h4>
+                            <p class="text-sm text-gray-600 mb-2">设计团队 · 截止日期: 2025-07-25</p>
+                            <div class="flex justify-between items-center">
+                                <div class="w-full bg-gray-200 rounded-full h-1.5 mr-2">
+                                    <div class="bg-warning h-1.5 rounded-full" style="width: 40%"></div>
+                                </div>
+                                <span class="text-xs font-medium text-warning">40%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 今日任务 -->
+                <div class="bg-white rounded-xl p-6 card-shadow">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-bold">今日任务</h3>
+                        <button class="text-primary hover:text-primary/80 text-sm flex items-center">
+                            <i class="fa fa-plus mr-1"></i> 添加任务
+                        </button>
+                    </div>
+                    <div class="space-y-4">
+                        <div class="flex items-start p-3 border border-gray-100 rounded-lg hover:border-primary/30 transition-colors hover-lift">
+                            <input type="checkbox" class="mt-1 mr-3 accent-primary">
+                            <div>
+                                <h4 class="font-medium">完成首页设计稿</h4>
+                                <p class="text-sm text-gray-600 mt-1">截止时间: 今天 16:00</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start p-3 border border-gray-100 rounded-lg hover:border-primary/30 transition-colors hover-lift">
+                            <input type="checkbox" class="mt-1 mr-3 accent-primary">
+                            <div>
+                                <h4 class="font-medium">与开发团队沟通</h4>
+                                <p class="text-sm text-gray-600 mt-1">截止时间: 今天 14:30</p>
+                            </div>
+                        </div>
+                        <div class="flex items-start p-3 border border-gray-100 rounded-lg hover:border-primary/30 transition-colors hover-lift">
+                            <input type="checkbox" class="mt-1 mr-3 accent-primary">
+                            <div>
+                                <h4 class="font-medium">审核移动端设计</h4>
+                                <p class="text-sm text-gray-600 mt-1">截止时间: 今天 18:00</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 进度填报 -->
+                <div class="bg-gradient-to-br from-primary to-accent rounded-xl p-6 text-white shadow-lg">
+                    <h3 class="text-lg font-bold mb-4">填报今日进度</h3>
+                    <p class="text-white/80 mb-6">提交你的工作进展，帮助团队了解项目状态</p>
+                    <button class="w-full bg-white text-primary font-medium py-3 rounded-lg hover:bg-gray-100 transition-colors shadow-md">
+                        填写进度报告
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 项目甘特图 -->
+        <section class="mt-8 bg-white rounded-xl p-6 card-shadow">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-lg font-bold">项目时间线</h3>
+                <div class="flex items-center space-x-4">
+                    <div class="flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full bg-primary"></span>
+                        <span class="text-sm text-gray-600">进行中</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full bg-success"></span>
+                        <span class="text-sm text-gray-600">已完成</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="w-3 h-3 rounded-full bg-warning"></span>
+                        <span class="text-sm text-gray-600">延期</span>
+                    </div>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full min-w-[800px]">
+                    <thead>
+                        <tr class="border-b border-gray-200">
+                            <th class="py-3 text-left text-gray-600 font-medium">项目</th>
+                            <th class="py-3 text-left text-gray-600 font-medium">负责人</th>
+                            <th class="py-3 text-left text-gray-600 font-medium" colspan="28">时间线 (7月)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="border-b border-gray-100">
+                            <td class="py-4 font-medium">企业官网改版</td>
+                            <td class="py-4"><img src="https://picsum.photos/id/1005/32/32" alt="负责人" class="w-6 h-6 rounded-full mr-2">张设计师</td>
+                            <td colspan="7"></td>
+                            <td colspan="14" class="bg-primary/20 text-center">进行中</td>
+                            <td colspan="7" class="bg-gray-100"></td>
+                        </tr>
+                        <tr class="border-b border-gray-100">
+                            <td class="py-4 font-medium">移动应用UI设计</td>
+                            <td class="py-4"><img src="https://picsum.photos/id/1012/32/32" alt="负责人" class="w-6 h-6 rounded-full mr-2">李设计师</td>
+                            <td colspan="4"></td>
+                            <td colspan="12" class="bg-primary/20 text-center">进行中</td>
+                            <td colspan="3" class="bg-warning/20 text-center">延期</td>
+                            <td colspan="9" class="bg-gray-100"></td>
+                        </tr>
+                        <tr>
+                            <td class="py-4 font-medium">品牌视觉系统</td>
+                            <td class="py-4"><img src="https://picsum.photos/id/1027/32/32" alt="负责人" class="w-6 h-6 rounded-full mr-2">王设计师</td>
+                            <td colspan="2"></td>
+                            <td colspan="20" class="bg-success/20 text-center">已完成</td>
+                            <td colspan="6"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-white border-t border-gray-200 py-6 mt-8">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                <div class="mb-4 md:mb-0">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa fa-line-chart text-primary text-xl"></i>
+                        <span class="font-bold text-primary">设计进度流程可视化应用</span>
+                    </div>
+                    <p class="text-gray-500 text-sm mt-2">提高团队协作效率，实时掌握项目进度</p>
+                </div>
+                <div class="flex flex-wrap gap-6">
+                    <div>
+                        <h4 class="font-medium mb-2">功能</h4>
+                        <ul class="space-y-1 text-sm text-gray-500">
+                            <li><a href="#" class="hover:text-primary">项目管理</a></li>
+                            <li><a href="#" class="hover:text-primary">进度追踪</a></li>
+                            <li><a href="#" class="hover:text-primary">数据报表</a></li>
+                            <li><a href="#" class="hover:text-primary">团队协作</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-medium mb-2">支持</h4>
+                        <ul class="space-y-1 text-sm text-gray-500">
+                            <li><a href="#" class="hover:text-primary">帮助中心</a></li>
+                            <li><a href="#" class="hover:text-primary">联系我们</a></li>
+                            <li><a href="#" class="hover:text-primary">常见问题</a></li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4 class="font-medium mb-2">关于</h4>
+                        <ul class="space-y-1 text-sm text-gray-500">
+                            <li><a href="#" class="hover:text-primary">公司介绍</a></li>
+                            <li><a href="#" class="hover:text-primary">隐私政策</a></li>
+                            <li><a href="#" class="hover:text-primary">服务条款</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="border-t border-gray-100 mt-6 pt-6 text-center text-gray-500 text-sm">
+                © 2025 设计进度流程可视化应用. 保留所有权利.
+            </div>
+        </div>
+    </footer>
+
+    <!-- 进度填报模态框 -->
+    <div id="progressModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center">
+        <div class="bg-white rounded-xl w-full max-w-lg p-6 transform transition-all">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold">填写进度报告</h3>
+                <button id="closeModal" class="text-gray-500 hover:text-gray-700">
+                    <i class="fa fa-times text-xl"></i>
+                </button>
+            </div>
+            <form>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">选择项目</label>
+                        <select class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors">
+                            <option>企业官网改版</option>
+                            <option>移动应用UI设计</option>
+                            <option>品牌视觉系统</option>
+                            <option>用户体验研究</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">今日完成情况</label>
+                        <textarea rows="4" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors" placeholder="请描述今天完成的工作内容..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">遇到的问题</label>
+                        <textarea rows="2" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors" placeholder="如有问题，请简要描述..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">明日计划</label>
+                        <textarea rows="3" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-primary transition-colors" placeholder="请描述明天的工作计划..."></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">进度百分比</label>
+                        <input type="range" min="0" max="100" value="50" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-primary">
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>0%</span>
+                            <span>50%</span>
+                            <span>100%</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">上传附件（可选）</label>
+                        <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-primary transition-colors">
+                            <i class="fa fa-cloud-upload text-3xl text-gray-400 mb-2"></i>
+                            <p class="text-sm text-gray-500">点击或拖拽文件到此处上传</p>
+                            <p class="text-xs text-gray-400 mt-1">支持 JPG, PNG, PDF, XLSX 格式</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-6 flex justify-end space-x-3">
+                    <button type="button" id="cancelReport" class="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors">
+                        取消
+                    </button>
+                    <button type="submit" class="px-5 py-2.5 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors shadow-md hover:shadow-lg">
+                        提交报告
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        // 设置当前日期
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateOptions = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+            const currentDate = new Date().toLocaleDateString('zh-CN', dateOptions);
+            document.getElementById('current-date').textContent = currentDate;
+            
+            // 初始化图表
+            initCharts();
+            
+            // 移动端菜单切换
+            document.getElementById('mobile-menu-button').addEventListener('click', function() {
+                const mobileMenu = document.getElementById('mobile-menu');
+                mobileMenu.classList.toggle('hidden');
+            });
+            
+            // 导航栏滚动效果
+            window.addEventListener('scroll', function() {
+                const navbar = document.getElementById('navbar');
+                if (window.scrollY > 10) {
+                    navbar.classList.add('shadow-md');
+                } else {
+                    navbar.classList.remove('shadow-md');
+                }
+            });
+            
+            // 进度填报模态框
+            document.querySelectorAll('button:contains("填写进度报告")').forEach(button => {
+                button.addEventListener('click', function() {
+                    document.getElementById('progressModal').classList.remove('hidden');
+                });
+            });
+            
+            document.getElementById('closeModal').addEventListener('click', function() {
+                document.getElementById('progressModal').classList.add('hidden');
+            });
+            
+            document.getElementById('cancelReport').addEventListener('click', function() {
+                document.getElementById('progressModal').classList.add('hidden');
+            });
+        });
+        
+        // 初始化图表
+        function initCharts() {
+            // 项目进度图表
+            const projectCtx = document.getElementById('projectProgressChart').getContext('2d');
+            const projectChart = new Chart(projectCtx, {
+                type: 'line',
+                data: {
+                    labels: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+                    datasets: [
+                        {
+                            label: '企业官网改版',
+                            data: [15, 30, 45, 55, 65, 70, 75],
+                            borderColor: '#165DFF',
+                            backgroundColor: 'rgba(22, 93, 255, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: '移动应用UI设计',
+                            data: [10, 25, 35, 45, 50, 55, 60],
+                            borderColor: '#36CFC9',
+                            backgroundColor: 'rgba(54, 207, 201, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: '品牌视觉系统',
+                            data: [20, 40, 60, 75, 85, 90, 90],
+                            borderColor: '#722ED1',
+                            backgroundColor: 'rgba(114, 46, 209, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // 任务完成率图表
+            const taskCtx = document.getElementById('taskCompletionChart').getContext('2d');
+            const taskChart = new Chart(taskCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['已完成', '进行中', '未开始'],
+                    datasets: [{
+                        data: [45, 30, 25],
+                        backgroundColor: [
+                            '#52C41A',
+                            '#165DFF',
+                            '#F5F7FA'
+                        ],
+                        borderWidth: 0,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '70%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
+    
